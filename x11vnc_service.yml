@@ -1,0 +1,14 @@
+---
+- hosts: all
+  vars:
+          
+
+  tasks:
+
+        - name: Start the x11VNC Service
+          shell: x11vnc --reopen --forever -usepw &
+          args:
+                  chdir: /home/wallmonitor/
+
+
+  :ignore_errors
