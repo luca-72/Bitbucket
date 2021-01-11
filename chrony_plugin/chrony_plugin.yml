@@ -1,0 +1,34 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  vars:
+          download_url: "http://bnalmsat702.medhost.com/pub/chronyplugin.tar.gz"
+          download_archive:  "{{download_folder}}chronyplugin.tar.gz"
+          download_folder: /home/htadmin/
+          installer_folder: /home/htadmin/chronyplugin
+          
+        
+        
+  tasks:
+        - name: Download Plugin Tarball
+          command: "wget {{download_url}} creates={{download_archive}}"
+
+        - name: Unpack Plugin Folder
+          command: "tar xzvf {{download_archive}}"
+
+
+        - name: Install Plugin file
+          shell: mv check_chrony.sh /usr/local/nagios/libexec/
+          args:
+                  chdir: /home/htadmin/chronyplugin/
+
+        - name: Install NRPE Config file
+          shell: mv nrpe.cfg /usr/local/nagios/etc/
+          args:
+                  chdir: /home/htadmin/chronyplugin/
+
+        - name: Restart xinetd service
+          command: "service xinetd restart"
+
+          ignore_errors: yes # This is to ensure the playbook continues to run after encountering an error.
