@@ -1,0 +1,19 @@
+---
+
+- hosts: all
+  become: yes
+  become_user: root
+
+
+  tasks:
+
+ 
+        - name: "Restart NTP Protocol"
+          shell: service ntpd restart
+          
+  ignore_errors: yes
+
+
+
+
+   

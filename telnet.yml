@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+
+  tasks:
+      - name: "Ensure telnet is installed"
+        yum:
+          name: telnet
+          state: present
+
+      - name: "Check all port numbers for current host"
+        wait_for:
+          host: capsule.medhost.com 
+          port: "{{ item }}"
+          state: started   # Port should be open
+          delay: 0
+          timeout: 3        # No wait before first check (sec)timeout: 3             # Stop checking after timeout (sec)
+        with_items:
+            - 443
+            - 8443
+            - 80
+            - 9090
+            - 8140
+            - 5647
+            - 8141
+
+  ignore_errors: yes

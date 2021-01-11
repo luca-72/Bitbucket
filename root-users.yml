@@ -1,0 +1,20 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+
+
+  tasks:
+
+
+    - name: Install MEDHOST USERS ROOT RPM FOR RHEL-6
+      command:  yum install medhost-users-root -y
+      when:
+            - ansible_distribution_release == "Santiago"
+
+
+    - name: Install MEDHOST USERS ROOT RPM FOR RHEL-7
+      command: yum install medhost-users-root -y
+      when:
+            - ansible_distribution_release == "Maipo"
