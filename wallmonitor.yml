@@ -1,0 +1,86 @@
+---
+- hosts: wallmonitor
+  sudo: yes
+  vars:
+          download_url: "http://bnalmsat701.corp.local/pub/ffquantum.tar.gz"
+          download_archive:  "{{download_folder}}ffquantum.tar.gz"
+          download_folder: /root/
+          installer_folder: /root/ffquantum
+          hostname: $HOSTNAME
+          become_user: wallmonitor
+
+  tasks:
+        - name: Download ffquantum Tarball
+          command: "wget {{download_url}} creates={{download_archive}}"
+
+        - name: Unpack ffquantum Folder
+          command: "tar xzvf {{download_archive}}"
+
+
+        - name: Place Sat Registration CERT file
+          shell: mv RHN-ORG-TRUSTED-SSL-CERT /usr/share/rhn
+          args:
+                  chdir: /root/ffquantum/
+
+        - name: Place Sat Registration MH Bootstrap file
+          shell:  chmod 755 MEDHOSTbootstrap.sh && mv MEDHOSTbootstrap.sh /root
+          args:
+                  chdir: /root/ffquantum/
+
+          #        - name: Get hostname
+          #          shell:  hostname | $HOSTNAME
+
+
+        - name: Register the Server
+          shell:  hostname | hostname  &&  ./MEDHOSTbootstrap.sh -s bnalmsat701.corp.local -p {{hostname}} 3-rhel7-wm-wkstn
+          args:
+                  chdir: /root
+
+        - name: SLEEP 30 Seconds
+          command: sleep 30
+
+        - name: Update the Server
+          shell:  yum update -y
+
+        - name: SLEEP 40 Seconds
+          command: sleep 40
+
+        - name: Setup Firefox 60 Quantum Binaries
+          shell:  mv firefox /opt/
+          args:
+                    chdir: /root/ffquantum/
+
+        - name: Setup Firefox 60 Quantum Application Shortcut
+          shell:  mv firefox-quantum.desktop /usr/share/applications/
+          args:
+                    chdir: /root/ffquantum/
+
+        - name: Add Firewall Rule
+          shell:  firewall-cmd --permanent  --add-port=5900/tcp && firewall-cmd --reload
+
+        - name: Install X11VNC Server
+          shell:  yum --nogpg install x11vnc -y
+
+        - name: Place VNC Server config file
+          shell:  mv .vnc /home/wallmonitor/
+          args:
+                      chdir: /root/ffquantum/
+
+        - name: Place VNC Server config file
+          shell:  mv autostart /home/wallmonitor/.config/
+          args:
+                      chdir: /root/ffquantum/
+
+        - name: Disable Gnome-Initial-Setup From Running
+          shell: echo "X-GNOME-Autostart-enabled=false" >> /etc/xdg/autostart/gnome-initial-setup-first-login.desktop
+
+
+        - name: Enable The X11 VNC Server
+          command: sed -i '/exit 0/ix11vnc -auth guess -display :0 &' Default
+          args:
+                  chdir: /etc/gdm/Init/
+
+        - name: Reboot the Server
+          command: reboot
+
+          ignore_errors: yes?
